@@ -9,6 +9,8 @@ import constants
 import pickle
 import os.path
 import cv2
+import random
+
 
 client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
@@ -21,7 +23,10 @@ class helloHandler(BaseHTTPRequestHandler):
         self.end_headers()
         file = self.path[1:]
         if os.path.isfile(file):
-            d = cv2.imread(file) 
+            d = cv2.imread(file)
+            big_object = [random.random() for _ in range(1000000)] 
+            dest = SplitFile(self.path[1:]+".part%02d.pickle", 2*1024**2)
+            pickle.dump(big_object, dest)
             msg = pickle.dumps(d)
             self.wfile.write(msg)
         else:
@@ -82,7 +87,37 @@ def main():
     print(data_received.decode(constants.ENCONDING_FORMAT))
     print('Closing connection...BYE BYE...')
     client_socket.close()
+    
+class SplitFile(object):
+    def __init__(self, name_pattern, chunk_size=2*1024**3):
+        self.name_pattern = name_pattern
+        self.chunk_size = chunk_size
+        self.file = None
+        self.part = -1
+        self.offset = None
 
+    def write(self, bytes):
+        if not self.file:  self._split()
+        while True:
+            l = len(bytes)
+            wl = min(l, self.chunk_size - self.offset)
+            self.file.write(bytes[:wl])
+            self.offset += wl
+            if wl == l: break
+            self._split()
+            bytes = bytes[wl:]
+
+    def _split(self):
+        if self.file:  self.file.close()
+        self.part += 1
+        self.file = open(self.name_pattern % self.part, "wb")
+        self.offset = 0
+
+    def close(self):
+        if self.file:  self.file.close()
+
+    def __del__(self):
+        self.close()
     
     
 

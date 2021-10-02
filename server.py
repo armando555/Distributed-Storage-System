@@ -10,6 +10,33 @@ import urllib.parse
 import threading
 
 
+def splitFile(file):
+    #Stores the length of the string  
+    length = len(file);   
+    #n determines the variable that divide the string in 'n' equal parts  
+    n = 2;  
+    temp = 0;  
+    chars = int(length/n);  
+    #Stores the array of string  
+    equalStr = [];   
+    #Check whether a string can be divided into n equal parts  
+    if(length % n != 0):  
+        print("Sorry this string cannot be divided into " + str(n) +" equal parts.")
+        n=3
+        chars = int(length/n);  
+        print("we are going to divide into 3 equal parts")
+        
+    for i in range(0, length, chars):  
+        #Dividing string in n equal part using substring()  
+        part = file[ i : i+chars];  
+        equalStr.append(part);  
+    print("Equal parts of given string are");  
+    for i in equalStr:  
+        print("*************************************************************************************************************************");  
+        print(i);  
+
+
+
 
 # Defining a socket object...
 server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -53,8 +80,11 @@ def handler_client_connection(client_connection,client_address):
             #print("the request is ", requestHttp)
             conn.request("GET", requestHttp)
             firstResponse = conn.getresponse()
+            firstResponse = firstResponse.read()
+            #conversion = str(firstResponse)
+            #splitFile(conversion.decode())
             #print("message from client 1 ",firstResponse)
-            client_connection.sendall(firstResponse.read())
+            client_connection.sendall(firstResponse)
         elif (command == constants.SAVE):
             response = remote_command[1] 
             files[response] = client_address[0]

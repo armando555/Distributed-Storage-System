@@ -7,11 +7,14 @@ import urllib.parse
 import threading
 import constants
 import pickle
+import os.path
 import cv2
+import random
+
 
 client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
-files = ["logo.jpg","algo.jpg","tampoco.jpg"]
+files = []
 
 class helloHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -19,14 +22,13 @@ class helloHandler(BaseHTTPRequestHandler):
         self.send_header('content_type', 'application/octet-stream')
         self.end_headers()
         file = self.path[1:]
-        if file in files:
-            msg = "Yes, I have it"
-            d = cv2.imread('logo.jpg') 
+        if os.path.isfile(file):
+            d = cv2.imread(file) 
             msg = pickle.dumps(d)
             self.wfile.write(msg)
         else:
             msg = "No, sorry I dont have it " + file
-            self.wfile.write(str.encode(msg))
+            self.wfile.write(pickle.dumps(msg))
 
 
 def main():
@@ -44,7 +46,7 @@ def main():
     local_tuple = client_socket.getsockname()
     print('Connected to the server from:', local_tuple)
     print('Enter \"quit\" to exit')
-    print('Input commands:')
+    print('What do you want to do?\nDownload\nSave')
     command_to_send = input()
 
     while command_to_send != constants.QUIT:
@@ -57,18 +59,20 @@ def main():
             client_socket.send(bytes(command_and_data_to_send,constants.ENCONDING_FORMAT))
             data_received = client_socket.recv(constants.RECV_BUFFER_SIZE)
             d = pickle.loads(data_received)
-            cv2.imshow('Logo',d)
+            cv2.imwrite(data_to_send,d)
+            cv2.imshow('Imagen',d)
             cv2.waitKey(5000)
             cv2.destroyAllWindows()
             print("200 OK")
-            command_to_send = input()       
+            command_to_send = input()
         elif (command_to_send == constants.SAVE):
-            data_to_send = input('Input data to save: ') 
+            data_to_send = input('Input data to save: ')
+            files.append(data_to_send) 
             command_and_data_to_send = command_to_send + ' ' + data_to_send
             client_socket.send(bytes(command_and_data_to_send,constants.ENCONDING_FORMAT))
             data_received = client_socket.recv(constants.RECV_BUFFER_SIZE)        
             print(data_received.decode(constants.ENCONDING_FORMAT))
-            command_to_send = input()       
+            command_to_send = input()              
         else:        
             client_socket.send(bytes(command_to_send,constants.ENCONDING_FORMAT))
             data_received = client_socket.recv(constants.RECV_BUFFER_SIZE)        
@@ -80,6 +84,13 @@ def main():
     print(data_received.decode(constants.ENCONDING_FORMAT))
     print('Closing connection...BYE BYE...')
     client_socket.close()
+
+    
+    
+
+
+if __name__ == "__main__":
+    main()
 
     
     
