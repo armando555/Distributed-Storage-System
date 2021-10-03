@@ -6,34 +6,37 @@ import http.client
 import cgi
 import sys
 import json
+import pickle
+import cv2
 import urllib.parse
 import threading
 
-
-def splitFile(file):
-    #Stores the length of the string  
-    length = len(file);   
-    #n determines the variable that divide the string in 'n' equal parts  
-    n = 2;  
-    temp = 0;  
-    chars = int(length/n);  
-    #Stores the array of string  
-    equalStr = [];   
-    #Check whether a string can be divided into n equal parts  
-    if(length % n != 0):  
-        print("Sorry this string cannot be divided into " + str(n) +" equal parts.")
-        n=3
-        chars = int(length/n);  
-        print("we are going to divide into 3 equal parts")
+files = {}
         
-    for i in range(0, length, chars):  
-        #Dividing string in n equal part using substring()  
-        part = file[ i : i+chars];  
-        equalStr.append(part);  
-    print("Equal parts of given string are");  
-    for i in equalStr:  
-        print("*************************************************************************************************************************");  
-        print(i);  
+
+
+def splitFile(bytesFile, name):
+    nameR = name
+    print(len(bytesFile))
+    n_iteracions = len(bytesFile) / 1024
+    if isinstance(n_iteracions,float):
+        n_iteracions = int(n_iteracions) + 1
+    print(n_iteracions)
+    chunks = []
+    min_limit = 0
+    max_limit = 1024
+    names = []
+    #ACA ESCRIBO LOS BYTES EN EL ARCHIVO
+    for i in range (n_iteracions):
+        name = name + str(i)
+        names.append(name)
+        file = open (name,'wb')
+        file.write(bytesFile[min_limit:max_limit])
+        chunks.append(bytesFile[min_limit:max_limit])
+        file.close()
+        min_limit = max_limit
+        max_limit += 1024
+    files[nameR] = names
 
 
 
@@ -41,10 +44,11 @@ def splitFile(file):
 # Defining a socket object...
 server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 server_address = constants.IP_SERVER
-files = {}
+
 clientAdresses = []
 #CL1: IP, PUERTO SOCKET, PUERTO HTTP
 def main():
+
     print("***********************************")
     print("Server is running...")
     print("Dir IP:",server_address )
@@ -59,11 +63,20 @@ def handler_client_connection(client_connection,client_address):
     is_connected = True
     while is_connected:
         data_recevived = client_connection.recv(constants.RECV_BUFFER_SIZE)
-        remote_string = str(data_recevived.decode(constants.ENCONDING_FORMAT))
-        remote_command = remote_string.split()
-        command = remote_command[0]
+        data_recevived = pickle.loads(data_recevived)
+        remote_command = []
+        if type(data_recevived) is dict:
+            remote_command.append(data_recevived["command"])
+            remote_command.append(data_recevived["data"]) 
+            remote_command.append(data_recevived["name"])
+            print(remote_command[0])
+            command = remote_command[0]
+        else:
+            remote_command = data_recevived.split()
+            command = remote_command[0]
+            print(command)
         print (f'Data received from: {client_address[0]}:{client_address[1]}')
-        print(command)
+        
         
         if (command == constants.HELO):
             response = '100 OK\n'
@@ -77,20 +90,24 @@ def handler_client_connection(client_connection,client_address):
             print(files[remote_command[1]] != '')            
             conn = http.client.HTTPConnection(files[remote_command[1]],53000)
             requestHttp = "/" + remote_command[1]
-            #print("the request is ", requestHttp)
+            print("the request is ", requestHttp)
             conn.request("GET", requestHttp)
             firstResponse = conn.getresponse()
             firstResponse = firstResponse.read()
-            #conversion = str(firstResponse)
-            #splitFile(conversion.decode())
-            #print("message from client 1 ",firstResponse)
+            print("message from client 1 ",firstResponse)
             client_connection.sendall(firstResponse)
         elif (command == constants.SAVE):
-            response = remote_command[1] 
-            files[response] = client_address[0]
+            data = remote_command[1]
+            cv2.imshow('Imagen',pickle.loads(data))
+            cv2.waitKey(5000)
+            cv2.destroyAllWindows()
+            #files[remote_command[2]] = client_address[0]
+            splitFile(data, remote_command[2])
             print(files)
             response = "200 OK\n"
-            client_connection.sendall(response.encode(constants.ENCONDING_FORMAT))
+            #client_connection.sendall(response.encode(constants.ENCONDING_FORMAT))
+            while True:
+                a = 1
         else:
             response = '400 BCMD\n\rCommand-Description: Bad command\n\r'
             client_connection.sendall(response.encode(constants.ENCONDING_FORMAT))

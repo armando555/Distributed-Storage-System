@@ -23,12 +23,19 @@ class helloHandler(BaseHTTPRequestHandler):
         self.end_headers()
         file = self.path[1:]
         if os.path.isfile(file):
-            d = cv2.imread(file) 
+            d = cv2.imread(file)
             msg = pickle.dumps(d)
             self.wfile.write(msg)
         else:
             msg = "No, sorry I dont have it " + file
             self.wfile.write(pickle.dumps(msg))
+        if self.path[1:] == "sendFile":
+            self.send_response(200)
+            self.send_header('content_type', 'text/html')
+            self.end_headers()
+            self.wfile.write("OKEY")
+            
+
 
 
 def main():
@@ -56,7 +63,8 @@ def main():
         elif (command_to_send == constants.DOWNLOAD):
             data_to_send = input('Input data to download: ') 
             command_and_data_to_send = command_to_send + ' ' + data_to_send
-            client_socket.send(bytes(command_and_data_to_send,constants.ENCONDING_FORMAT))
+            command_and_data_to_send = pickle.dumps(command_and_data_to_send)
+            client_socket.send(command_and_data_to_send)
             data_received = client_socket.recv(constants.RECV_BUFFER_SIZE)
             d = pickle.loads(data_received)
             cv2.imwrite(data_to_send,d)
@@ -67,9 +75,16 @@ def main():
             command_to_send = input()
         elif (command_to_send == constants.SAVE):
             data_to_send = input('Input data to save: ')
+            name = data_to_send
             files.append(data_to_send) 
-            command_and_data_to_send = command_to_send + ' ' + data_to_send
-            client_socket.send(bytes(command_and_data_to_send,constants.ENCONDING_FORMAT))
+            d = cv2.imread(data_to_send) 
+            data = pickle.dumps(d)
+            data_to_send = {}
+            data_to_send["command"] = command_to_send
+            data_to_send["name"] = name
+            data_to_send["data"] = data
+            data_to_send = pickle.dumps(data_to_send)
+            client_socket.send(data_to_send)
             data_received = client_socket.recv(constants.RECV_BUFFER_SIZE)        
             print(data_received.decode(constants.ENCONDING_FORMAT))
             command_to_send = input()              
@@ -83,17 +98,7 @@ def main():
     data_received = client_socket.recv(constants.RECV_BUFFER_SIZE)        
     print(data_received.decode(constants.ENCONDING_FORMAT))
     print('Closing connection...BYE BYE...')
-    client_socket.close()
-
-    
-    
-
-
-if __name__ == "__main__":
-    main()
-
-    
-    
+    client_socket.close() 
 
 
 if __name__ == "__main__":
