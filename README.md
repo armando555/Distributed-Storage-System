@@ -1,5 +1,6 @@
 # Distribuited-Storage
 Proyecto de topicos de telemática
+
 Integrantes: 
 
 Armando Ríos Gallego
