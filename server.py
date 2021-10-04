@@ -60,7 +60,7 @@ def main():
 
 def handler_client_connection(client_connection,client_address):
     clientAdresses[client_address[0]] = []
-
+    clientParts = {}
     print(f'New incomming connection is coming from: {client_address[0]}:{client_address[1]}')
     is_connected = True
     while is_connected:
@@ -83,22 +83,37 @@ def handler_client_connection(client_connection,client_address):
             client_connection.sendall(response.encode(constants.ENCONDING_FORMAT))
             is_connected = False
         elif (command == constants.DOWNLOAD):
-            if(files[remote_command[2]] != ''):
-                for client in clientAdresses.keys():
-                    conn = http.client.HTTPConnection(client,53000)
-                    requestHttp = "/" + remote_command[1]
-            
-            print("the request is ", requestHttp)
+            bytesTotal = b''
+            conn = http.client.HTTPConnection("127.0.0.1",53000)
+            requestHttp = "/Julian"
             conn.request("GET", requestHttp)
             firstResponse = conn.getresponse()
             firstResponse = firstResponse.read()
-            print("message from client 1 ",firstResponse)
-            client_connection.sendall(firstResponse)
+            bytesTotal = bytesTotal + firstResponse
+            conn = http.client.HTTPConnection("127.0.0.1",54000)
+            requestHttp = "/Armando"
+            conn.request("GET", requestHttp)
+            firstResponse = conn.getresponse()
+            firstResponse = firstResponse.read()
+            bytesTotal = bytesTotal + firstResponse
+            #if(files[remote_command[2]] != ''):
+            #    for client in clientAdresses.keys():
+            #        found_file = [filename for filename in clientAdresses[client] if remote_command[2] in filename]
+            #        if found_file != []:
+            #            conn = http.client.HTTPConnection(client,53000)
+            #            requestHttp = "/" + found_file
+            #            print("the request is ", requestHttp)
+            #            conn.request("GET", requestHttp)
+            #            firstResponse = conn.getresponse()
+            #            firstResponse = firstResponse.read()
+            #            bytesTotal = bytesTotal + firstResponse
+            #            print("message from client "+str(client)+str(firstResponse))
+            client_connection.sendall(bytesTotal)
         elif (command == constants.SAVE):
             data = remote_command[1]
-            cv2.imshow('Imagen',pickle.loads(data))
-            cv2.waitKey(5000)
-            cv2.destroyAllWindows()
+            #cv2.imshow('Imagen',pickle.loads(data))
+            #cv2.waitKey(5000)
+            #cv2.destroyAllWindows()
             #files[remote_command[2]] = client_address[0]
             chunks = splitFile(data, remote_command[2])
             count = 0
@@ -109,12 +124,14 @@ def handler_client_connection(client_connection,client_address):
             #    data = file.read()
             #    conn.request('POST', '/post', data, headers)
             #    count += 1
-            clientAdresses[client_address[0]].append()
+            #clientAdresses[client_address[0]].append(remote_command[2]+str(count))
+
             conn = http.client.HTTPConnection("127.0.0.1",53000)
             file = open("logo.jpg0","rb")
             data = file.read()
             headers = {'Content-type': 'application/octet-stream','fileName':'Julian'}
             clientAdresses[client_address[0]].append("Julian")
+            clientParts ["Julian"] = client_address[0]            
             conn.request('POST', '/post/', data, headers)
             count += 1
             conn = http.client.HTTPConnection("127.0.0.1",54000)
@@ -122,6 +139,7 @@ def handler_client_connection(client_connection,client_address):
             data = file.read()
             headers = {'Content-type': 'application/octet-stream','fileName':'Armando'}
             clientAdresses[client_address[0]].append("Armando")
+            clientParts ["Armando"] = client_address[0]
             conn.request('POST', '/post/', data, headers)
             count += 1
             print(files)

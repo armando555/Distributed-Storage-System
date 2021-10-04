@@ -23,9 +23,9 @@ class helloHandler(BaseHTTPRequestHandler):
         self.end_headers()
         file = self.path[1:]
         if os.path.isfile(file):
-            d = cv2.imread(file)
-            msg = pickle.dumps(d)
-            self.wfile.write(msg)
+            d = open(self.path[1:],"rb")
+            file = d.read()
+            self.wfile.write(file)
         else:
             msg = "No, sorry I dont have it " + file
             self.wfile.write(pickle.dumps(msg))
@@ -76,6 +76,9 @@ def main():
             client_socket.send(command_and_data_to_send)
             data_received = client_socket.recv(constants.RECV_BUFFER_SIZE)
             d = pickle.loads(data_received)
+            file = open(data_to_send,"w")
+            file.write(d)
+            file.close() 
             cv2.imwrite(data_to_send,d)
             cv2.imshow('Imagen',d)
             cv2.waitKey(5000)

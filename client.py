@@ -23,9 +23,9 @@ class helloHandler(BaseHTTPRequestHandler):
         self.end_headers()
         file = self.path[1:]
         if os.path.isfile(file):
-            d = cv2.imread(file)
-            msg = pickle.dumps(d)
-            self.wfile.write(msg)
+            d = open(self.path[1:],"rb")
+            file = d.read()
+            self.wfile.write(file)
         else:
             msg = "No, sorry I dont have it " + file
             self.wfile.write(pickle.dumps(msg))
