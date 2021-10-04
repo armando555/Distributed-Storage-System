@@ -29,7 +29,21 @@ class helloHandler(BaseHTTPRequestHandler):
         else:
             msg = "No, sorry I dont have it " + file
             self.wfile.write(pickle.dumps(msg))
-    
+    def do_POST(self):
+        print("ESTOY HACIENDO POST JEJE")
+        content_len = int(self.headers.get('content-length'))
+        post_body = self.rfile.read(content_len)
+        print(type(post_body))
+        print(post_body)
+        print(self.path[1:])
+        name = self.headers.get('fileName')
+        data = post_body
+        file = open(name,"wb")
+        file.write(data)
+        file.close()
+        self.send_response(200)
+        self.end_headers()
+        #self.wfile.write(bytes("okey","utf-8"))
         
 
 

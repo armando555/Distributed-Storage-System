@@ -36,7 +36,8 @@ def splitFile(bytesFile, name):
         file.close()
         min_limit = max_limit
         max_limit += 1024
-    files[nameR] = names
+    files[nameR] = chunks
+    return chunks
 
 
 
@@ -44,8 +45,8 @@ def splitFile(bytesFile, name):
 # Defining a socket object...
 server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 server_address = constants.IP_SERVER
-
-clientAdresses = []
+#cl1, [logo.jpg00, asusenas.jpg01]
+clientAdresses = {}
 #CL1: IP, PUERTO SOCKET, PUERTO HTTP
 def main():
 
@@ -58,7 +59,8 @@ def main():
 # Handler for manage incomming clients conections...
 
 def handler_client_connection(client_connection,client_address):
-    clientAdresses.append(client_address)
+    clientAdresses[client_address[0]] = []
+
     print(f'New incomming connection is coming from: {client_address[0]}:{client_address[1]}')
     is_connected = True
     while is_connected:
@@ -75,14 +77,8 @@ def handler_client_connection(client_connection,client_address):
             remote_command = data_recevived.split()
             command = remote_command[0]
             print(command)
-        print (f'Data received from: {client_address[0]}:{client_address[1]}')
-        
-        
-        if (command == constants.HELO):
-            response = '100 OK\n'
-            print(clientAdresses)
-            client_connection.sendall(response.encode(constants.ENCONDING_FORMAT))
-        elif (command == constants.QUIT):
+        print (f'Data received from: {client_address[0]}:{client_address[1]}')        
+        if (command == constants.QUIT):
             response = '200 BYE\n'
             client_connection.sendall(response.encode(constants.ENCONDING_FORMAT))
             is_connected = False
@@ -102,12 +98,26 @@ def handler_client_connection(client_connection,client_address):
             cv2.waitKey(5000)
             cv2.destroyAllWindows()
             #files[remote_command[2]] = client_address[0]
-            splitFile(data, remote_command[2])
+            chunks = splitFile(data, remote_command[2])
+            count = 0
+            for client in clientAdresses.keys():
+                conn = http.client.HTTPConnection(client,53000)    
+                headers = {'Content-type': 'application/octet-stream','fileName':remote_command[2]+str(count)}
+                file = open(remote_command[2]+str(count),"rb")
+                data = file.read()
+                conn.request('POST', '/post', data, headers)
+                count += 1
+            #conn.request('POST', '/post/'+"funciona1", data, headers)
+            #count += 1
+            #conn = http.client.HTTPConnection("127.0.0.1",54000)
+            #file = open("logo.jpg01","rb")
+            #data = file.read()
+            #headers = {'Content-type': 'application/octet-stream','fileName':'Julian'}
+            #conn.request('POST', '/post/', data, headers)
+            #count += 1
             print(files)
             response = "200 OK\n"
-            #client_connection.sendall(response.encode(constants.ENCONDING_FORMAT))
-            while True:
-                a = 1
+            client_connection.sendall(response.encode(constants.ENCONDING_FORMAT))
         else:
             response = '400 BCMD\n\rCommand-Description: Bad command\n\r'
             client_connection.sendall(response.encode(constants.ENCONDING_FORMAT))
