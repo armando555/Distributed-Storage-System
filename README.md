@@ -30,7 +30,7 @@ Para descagar una imagen previamente guardada se ejecuta el comandoi DOWNLOAD a 
 
 escribes el comando
 
-SAVE
+DOWNLOAD
 
 input data to download
 
