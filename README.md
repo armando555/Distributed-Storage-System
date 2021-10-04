@@ -16,9 +16,13 @@ Para ejecutar la aplicación se debe ejecutar primero el archivo server.py el cu
 en el sistema de almacenamiento distribuido. Su eso es de:
 
 escribes el comando
+
 SAVE
+
 input data to search
+
 "escribes el nombre de la imagen"
+
 
 
 Para descagar una imagen previamente guardada se ejecuta el comandoi DOWNLOAD a la máquina local
