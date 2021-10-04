@@ -26,7 +26,7 @@ input data to search
 
 
 
-Para descagar una imagen previamente guardada se ejecuta el comandoi DOWNLOAD a la máquina local
+Para descagar una imagen previamente guardada se ejecuta el comando DOWNLOAD a la máquina local
 
 escribes el comando
 
