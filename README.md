@@ -13,7 +13,7 @@ servidor HTTP. Por lo cuál es una red P2P centralizada en donde hay un servidor
 
 
 
-Para ejecutar la aplicación se debe ejecutar primero el archivo server.py el cual desplegará 2 comandos SAVE Y DOWNLOAD. El comando SAVE es para guardar una imagen local
+Para ejecutar la aplicación se debe ejecutar primero el archivo server.py, este correrá el servidor. Posteriormente, se ejecutan 2 client.py los cuales desplegarán 2 comandos SAVE Y DOWNLOAD. El comando SAVE es para guardar una imagen local
 en el sistema de almacenamiento distribuido. Su eso es de:
 
 escribes el comando
