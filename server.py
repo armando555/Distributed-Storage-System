@@ -47,7 +47,7 @@ def splitFile(bytesFile, name):
         max_limit += 1024
         counter += 1
         files[nameR] = names
-        return chunks
+    return chunks
 
 
 # Defining a socket object...
