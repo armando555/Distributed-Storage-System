@@ -1,4 +1,4 @@
-# Distribuited-Storage
+# Distributed Storage System 
 Proyecto de topicos de telemática
 
 Integrantes: 
